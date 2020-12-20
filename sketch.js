@@ -4,7 +4,8 @@ var player1,player2;
 var gameState;
 var position
 var player1animation, player2animation;
-var player1Score, player2Score=0;
+var player1Score=0
+player2Score=0;
 
 function preload (){
     player1animation= loadAnimation("assests/player1a.png","assests/player1b.png","assests/player1a.png");
@@ -57,13 +58,24 @@ background(255)
 drawLines();
 
 if (gameState===0){
+console.log("GS:0")
+  database.ref('player1/position').update({
+    x:150,
+    y:400
+})
+
+database.ref('player2/position').update({
+  'x': 650,
+  'y': 400  
+})
+
     fill(0);
     stroke(0)
     textSize(20)
     strokeWeight(2)
     text("Press  Space To Start ", 300, 200)
 
-    if (keyDown ('space')){
+    if (keyDown ("space")){
         var rand = Math.round(random(1,2));
     
         if (rand===1){
@@ -73,25 +85,44 @@ if (gameState===0){
 
             alert("Red Plays")
 
-        } else if (rand=== 2){
+        } 
+        
+        if (rand=== 2){
             database.ref('/').update({
                 gameState:2
             })
             alert("Yellow Plays")
         }
-        database.ref('player1/position').update({
-            x:150,
-            y:400
-        })
-        database.ref('player2/position').update({
-            'x': 650,
-            'y': 400  
-          })
+       
+        
         }
-}
+
+      }
+      
+// condition for red to score
+if (player1.x>700){
+  player1Score = player1Score+5
+  player2Score=player2Score -5
+  database.ref("/").update({
+      'player1Score': player1Score,
+      'gameState': 0,
+      'player2Score': player2Score
+       })
+
+ }
+// condition for yellow to score
+if (player2.x<100){
+  player1Score = player1Score+5
+  player2Score=player2Score -5
+  database.ref('/').update({
+            'player1Score': player1Score,
+      'gameState':0,
+      'player2Score': player2Score
+       })
+   }  
 // red plays
 if (gameState===1){
-
+  console.log("in GS : 1")
     // adding control to players (red moves all direction & yellow moves up & down)
     if(keyDown("a")){
         writePositionRed(-5,0);
@@ -105,39 +136,75 @@ if (gameState===1){
       else if(keyDown("d")){
         writePositionRed(0,+5);
       }
+      if (player1.isTouching(player2)){
+        player1Score = player1Score-5
+    player2Score=player2Score +5
+            database.ref("/").update({
+              
+                'player1Score': player1Score,
+                'gameState': 0 ,
+                'player2Score': player2Score
+               
+            })
+            alert("Red Lost")
+        }
+    }
+
+     else if(gameState===2) {
+      console.log("in GS : 2")
+            if(keyDown(LEFT_ARROW)){
+        writePositionYellow(-5,0);
+      }
+      else if(keyDown(RIGHT_ARROW)){
+        writePositionYellow(5,0);
+      }
       else if(keyDown(UP_ARROW)){
         writePositionYellow(0,-5);
       }
       else if(keyDown(DOWN_ARROW)){
         writePositionYellow(0,+5);
       }
-
-      // increasing score if red touches the red line 
-// condition for red to score
-      if (player1.x>700){
-
-            database.ref("/").update({
-              'gameState': 0,
-                'player1Score': player1Score + 5 ,
-                'player2Score': player2Score - 5 ,
-                  
-            })
-        alert ("Red gains");
-        console.log(gameState)
-      }
-// condition for red to lose
       if (player1.isTouching(player2)){
+        player1Score = player1Score+5
+    player2Score=player2Score -5
+            database.ref("/").update({
+              
+                'player1Score': player1Score,
+                'gameState': 0 ,
+                'player2Score': player2Score
+               
+            })
+            alert("Yellow Lost")
+        }
+    }
+    
+  
+     /* if (player1.isTouching(player2)){
+        player1Score = player1Score-5
+    player2Score=player2Score +5
             database.ref("/").update({
               'gameState': 0 ,
-                'player1Score': player1Score - 5 ,
-                'player2Score': player2Score + 5 ,
+                'player1Score': player1Score,
+                'player2Score': player2Score
                
             })
             alert("Red Lost")
         }
-} // GAMESTATE 1 ENDS
 
-// yellow plays
+        // condition for yellow to lose
+        if (player1.isTouching(player2)){
+          player1Score = player1Score-5
+          player2Score=player2Score +5
+            database.ref('/').update({
+                'gameState': 0 ,
+                'player1Score': player1Score,
+                'player2Score': player2Score 
+                
+            })
+            alert("Yellow Lost")
+        }*/
+        
+/*// yellow plays
 if (gameState===2){
 
    // adding control to players (yellow moves all direction & red moves up & down)
@@ -159,32 +226,11 @@ if (gameState===2){
       else if(keyDown("d")){
         writePositionRed(0,+5);
       }
-     
-// condition for yellow to score
-    if (player2.x<100){
+}*/ 
 
-        database.ref('/').update({
-             'gameState':0,
-            'player1Score': player1Score - 5 ,
-            'player2Score': player2Score + 5 ,
-           
-        })
-        alert("Yellow gains")
-        console.log(player2Score)
-    }  
-// condition for yellow to lose
-    if (player1.isTouching(player2)){
-        database.ref('/').update({
-            'gameState': 0 ,
-            'player1Score': player1Score + 5 ,
-            'player2Score': player2Score - 5 
-            
-        })
-        alert("Yellow Lost")
-    }
-    
-   
-}// GAMESTATE 2  ENDS
+
+
+
 
     textSize(15)
     text("RED: "+player1Score,150,15);
@@ -243,8 +289,8 @@ function readGameState(data){
 
 function writePositionRed(x,y){
     database.ref('player1/position').update({
-        'x': position1.x + x ,
-        'y': position1.y + y
+        x: position1.x + x ,
+        y: position1.y + y
       })
 
 
@@ -253,8 +299,8 @@ function writePositionRed(x,y){
 
 function writePositionYellow(x,y){
     database.ref('player2/position').update({
-        'x': position2.x + x ,
-        'y': position2.y + y
+        x: position2.x + x ,
+        y: position2.y + y
       })
 
 }
